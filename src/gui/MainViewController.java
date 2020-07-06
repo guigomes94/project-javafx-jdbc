@@ -48,8 +48,8 @@ public class MainViewController implements Initializable {
 	}
 	
 	private synchronized <T> void loadView(String url, Consumer<T> initializingAction) {
-		var loader = new FXMLLoader(getClass().getResource(url));
 		try {
+			var loader = new FXMLLoader(getClass().getResource(url));
 			VBox newVBox = loader.load();
 			
 			var mainScene = Main.getMainScene();

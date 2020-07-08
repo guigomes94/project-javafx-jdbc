@@ -1,9 +1,11 @@
 package gui;
 
 import java.net.URL;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -110,22 +112,42 @@ public class SellerFormController implements Initializable {
 	}
 
 	private Seller getFormData() {
-		var department = new Seller();
+		var obj = new Seller();
 
-		var exception = new ValidationException("Validation errros");
+		var exception = new ValidationException("Validation error");
 
-		department.setId(Utils.tryParseToInt(txtId.getText()));
+		obj.setId(Utils.tryParseToInt(txtId.getText())); // id
 
 		if (txtName.getText() == null || txtName.getText().trim().equals("")) {
 			exception.addError("name", "Field can't be empty");
 		}
-		department.setName(txtName.getText());
+		obj.setName(txtName.getText()); // name
+		
+		if (txtEmail.getText() == null || txtEmail.getText().trim().equals("")) {
+			exception.addError("email", "Field can't be empty");
+		}
+		obj.setEmail(txtEmail.getText()); // email
+		
+		if (dpBirthDate == null) {
+			exception.addError("birthDate", "Field can't be empty");
+		} else {
+			var instant = Instant.from(dpBirthDate.getValue().atStartOfDay(ZoneId.systemDefault()));
+			obj.setBirthDate(Date.from(instant)); //birthDate
+		}
+		
+		
+		if (txtBaseSalary.getText() == null || txtBaseSalary.getText().trim().equals("")) {
+			exception.addError("baseSalary", "Field can't be empty"); 
+		}
+		obj.setBaseSalary(Utils.tryParseToDouble(txtBaseSalary.getText())); //baseSalary
+		
+		obj.setDepartment(comboBoxDepartment.getValue()); //department
 
 		if (exception.getErrors().size() > 0) {
 			throw exception;
 		}
 
-		return department;
+		return obj;
 	}
 
 	@FXML
@@ -205,9 +227,11 @@ public class SellerFormController implements Initializable {
 
 	private void setErrorMessages(Map<String, String> errors) {
 		Set<String> fields = errors.keySet();
-
-		if (fields.contains("name")) {
-			labelErrorName.setText(errors.get("name"));
-		}
+		
+		labelErrorName.setText(fields.contains("name") ? errors.get("name") : "");
+		labelErrorEmail.setText(fields.contains("email") ? errors.get("email") : "");
+		labelErrorBirthDate.setText(fields.contains("birthDate") ? errors.get("baseSalary") : "");
+		labelErrorBaseSalary.setText(fields.contains("baseSalary") ? errors.get("baseSalary") : "");
+		
 	}
 }

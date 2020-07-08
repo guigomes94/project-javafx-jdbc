@@ -38,7 +38,7 @@ public class DepartmentFormController implements Initializable {
 	private TextField txtName;
 
 	@FXML
-	private Label labelError;
+	private Label labelErrorName;
 
 	@FXML
 	private Button btnSave;
@@ -75,22 +75,22 @@ public class DepartmentFormController implements Initializable {
 	}
 
 	private Department getFormData() {
-		var department = new Department();
+		var obj = new Department();
 		
 		var exception = new ValidationException("Validation errros");
 		
-		department.setId(Utils.tryParseToInt(txtId.getText()));
+		obj.setId(Utils.tryParseToInt(txtId.getText()));
 		
 		if (txtName.getText() == null || txtName.getText().trim().equals("")) {
 			exception.addError("name", "Field can't be empty");
 		}
-		department.setName(txtName.getText());
+		obj.setName(txtName.getText());
 		
 		if (exception.getErrors().size() > 0) {
 			throw exception;
 		}
 		
-		return department;
+		return obj;
 	}
 
 	@FXML
@@ -133,8 +133,6 @@ public class DepartmentFormController implements Initializable {
 	private void setErrorMessages(Map<String, String> errors) {
 		Set<String> fields = errors.keySet();
 		
-		if (fields.contains("name")) {
-			labelError.setText(errors.get("name"));
-		}
+		labelErrorName.setText(fields.contains("name") ? errors.get("name") : "");
 	}
 }

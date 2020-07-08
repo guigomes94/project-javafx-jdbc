@@ -11,9 +11,10 @@ import java.util.List;
 import model.dao.DepartmentDao;
 import db.DB;
 import db.DbException;
+import db.DbIntegrityException;
 import model.entities.Department;
 
-public class DepartmentDaoJDBC implements DepartmentDao{ 
+public class DepartmentDaoJDBC implements DepartmentDao { 
 	
 	private Connection conn;
 
@@ -94,7 +95,7 @@ public class DepartmentDaoJDBC implements DepartmentDao{
 			
 		}
 		catch (SQLException e) {
-			throw new DbException(e.getMessage());
+			throw new DbIntegrityException(e.getMessage());
 			
 		}
 		finally {

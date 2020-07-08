@@ -1,5 +1,6 @@
 package gui;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.Date;
 import java.util.List;
@@ -16,7 +17,9 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
@@ -24,14 +27,14 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.Pane;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import model.entities.Seller;
 import model.services.DepartmentService;
 import model.services.SellerService;
 
 public class SellerListController implements Initializable, DataChangeListener {
-
-	private DepartmentService departmentService;
 
 	private SellerService sellerService;
 
@@ -45,13 +48,13 @@ public class SellerListController implements Initializable, DataChangeListener {
 
 	@FXML
 	private TableColumn<Seller, String> tableColumnName;
-	
+
 	@FXML
 	private TableColumn<Seller, String> tableColumnEmail;
-	
+
 	@FXML
 	private TableColumn<Seller, Date> tableColumnBirthDate;
-	
+
 	@FXML
 	private TableColumn<Seller, Double> tableColumnBaseSalary;
 
@@ -105,27 +108,28 @@ public class SellerListController implements Initializable, DataChangeListener {
 	}
 
 	private void createModalForm(Seller obj, String url, Stage parentStage) {
-//		try {
-//			var loader = new FXMLLoader(getClass().getResource(url));
-//			Pane pane = loader.load();
-//
-//			SellerFormController controller = loader.getController();
-//			controller.setSeller(obj);
-//			controller.setSellerService(new SellerService());
-//			controller.subscribeDataChangeListener(this);
-//			controller.updateFormData();
-//
-//			var modalStage = new Stage();
-//			modalStage.setTitle("Enter Seller data");
-//			modalStage.setScene(new Scene(pane));
-//			modalStage.setResizable(false);
-//			modalStage.initOwner(parentStage);
-//			modalStage.initModality(Modality.WINDOW_MODAL);
-//			modalStage.showAndWait();
-//
-//		} catch (IOException e) {
-//			Alerts.showAlert("IO Exception", null, e.getMessage(), AlertType.ERROR);
-//		}
+		try {
+			var loader = new FXMLLoader(getClass().getResource(url));
+			Pane pane = loader.load();
+
+			SellerFormController controller = loader.getController();
+			controller.setSeller(obj);
+			controller.setServices(new SellerService(), new DepartmentService());
+			controller.loadAssociatedObjects();
+			controller.subscribeDataChangeListener(this);
+			controller.updateFormData();
+
+			var modalStage = new Stage();
+			modalStage.setTitle("Enter Seller data");
+			modalStage.setScene(new Scene(pane));
+			modalStage.setResizable(false);
+			modalStage.initOwner(parentStage);
+			modalStage.initModality(Modality.WINDOW_MODAL);
+			modalStage.showAndWait();
+
+		} catch (IOException e) {
+			Alerts.showAlert("IO Exception", null, e.getMessage(), AlertType.ERROR);
+		}
 	}
 
 	@Override

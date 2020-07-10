@@ -1,7 +1,8 @@
-package gui;
+package gui.controllers;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -29,29 +30,39 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.Pane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import model.entities.Department;
+import model.entities.Seller;
 import model.services.DepartmentService;
+import model.services.SellerService;
 
-public class DepartmentListController implements Initializable, DataChangeListener {
+public class SellerListController implements Initializable, DataChangeListener {
 
-	private DepartmentService departmentService;
+	private SellerService sellerService;
 
-	private ObservableList<Department> obsList;
-
-	@FXML
-	private TableView<Department> tableViewDepartment;
+	private ObservableList<Seller> obsList;
 
 	@FXML
-	private TableColumn<Department, Integer> tableColumnId;
+	private TableView<Seller> tableViewSeller;
 
 	@FXML
-	private TableColumn<Department, String> tableColumnName;
+	private TableColumn<Seller, Integer> tableColumnId;
 
 	@FXML
-	private TableColumn<Department, Department> tableColumnEdit;
+	private TableColumn<Seller, String> tableColumnName;
 
 	@FXML
-	private TableColumn<Department, Department> tableColumnRemove;
+	private TableColumn<Seller, String> tableColumnEmail;
+
+	@FXML
+	private TableColumn<Seller, Date> tableColumnBirthDate;
+
+	@FXML
+	private TableColumn<Seller, Double> tableColumnBaseSalary;
+
+	@FXML
+	private TableColumn<Seller, Seller> tableColumnEdit;
+
+	@FXML
+	private TableColumn<Seller, Seller> tableColumnRemove;
 
 	@FXML
 	private Button btnNew;
@@ -59,12 +70,12 @@ public class DepartmentListController implements Initializable, DataChangeListen
 	@FXML
 	public void onBtnNewAction(ActionEvent e) {
 		Stage parentStage = Utils.currentStage(e);
-		var obj = new Department();
-		createModalForm(obj, "/gui/DepartmentForm.fxml", parentStage);
+		var obj = new Seller();
+		createModalForm(obj, "/gui/views/SellerForm.fxml", parentStage);
 	}
 
-	public void setDepartmentService(DepartmentService service) {
-		this.departmentService = service;
+	public void setSellerService(SellerService service) {
+		this.sellerService = service;
 	}
 
 	@Override
@@ -75,35 +86,41 @@ public class DepartmentListController implements Initializable, DataChangeListen
 	private void iniatializeNodes() {
 		tableColumnId.setCellValueFactory(new PropertyValueFactory<>("id"));
 		tableColumnName.setCellValueFactory(new PropertyValueFactory<>("name"));
+		tableColumnEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
+		tableColumnBirthDate.setCellValueFactory(new PropertyValueFactory<>("birthDate"));
+		Utils.formatTableColumnDate(tableColumnBirthDate, "dd/MM/yyyy");
+		tableColumnBaseSalary.setCellValueFactory(new PropertyValueFactory<>("baseSalary"));
+		Utils.formatTableColumnDouble(tableColumnBaseSalary, 2);
 
 		var stage = (Stage) Main.getMainScene().getWindow();
-		tableViewDepartment.prefHeightProperty().bind(stage.heightProperty());
+		tableViewSeller.prefHeightProperty().bind(stage.heightProperty());
 	}
 
 	public void updateTableView() {
-		if (departmentService == null) {
+		if (sellerService == null) {
 			throw new IllegalStateException("Service wa null");
 		}
-		List<Department> list = departmentService.findAll();
+		List<Seller> list = sellerService.findAll();
 		obsList = FXCollections.observableArrayList(list);
-		tableViewDepartment.setItems(obsList);
+		tableViewSeller.setItems(obsList);
 		initEditButtons();
 		initRemoveButtons();
 	}
 
-	private void createModalForm(Department obj, String url, Stage parentStage) {
+	private void createModalForm(Seller obj, String url, Stage parentStage) {
 		try {
 			var loader = new FXMLLoader(getClass().getResource(url));
 			Pane pane = loader.load();
 
-			DepartmentFormController controller = loader.getController();
-			controller.setDepartment(obj);
-			controller.setDepartmentService(new DepartmentService());
+			SellerFormController controller = loader.getController();
+			controller.setSeller(obj);
+			controller.setServices(new SellerService(), new DepartmentService());
+			controller.loadAssociatedObjects();
 			controller.subscribeDataChangeListener(this);
 			controller.updateFormData();
 
 			var modalStage = new Stage();
-			modalStage.setTitle("Enter Department data");
+			modalStage.setTitle("Enter Seller data");
 			modalStage.setScene(new Scene(pane));
 			modalStage.setResizable(false);
 			modalStage.initOwner(parentStage);
@@ -122,30 +139,29 @@ public class DepartmentListController implements Initializable, DataChangeListen
 
 	private void initEditButtons() {
 		tableColumnEdit.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue()));
-		tableColumnEdit.setCellFactory(param -> new TableCell<Department, Department>() {
+		tableColumnEdit.setCellFactory(param -> new TableCell<Seller, Seller>() {
 			private final Button button = new Button("edit");
 
 			@Override
-			protected void updateItem(Department obj, boolean empty) {
+			protected void updateItem(Seller obj, boolean empty) {
 				super.updateItem(obj, empty);
 				if (obj == null) {
 					setGraphic(null);
 					return;
 				}
 				setGraphic(button);
-				button.setOnAction(
-						event -> createModalForm(obj, "/gui/DepartmentForm.fxml", Utils.currentStage(event)));
+				button.setOnAction(event -> createModalForm(obj, "/gui/views/SellerForm.fxml", Utils.currentStage(event)));
 			}
 		});
 	}
 
 	private void initRemoveButtons() {
 		tableColumnRemove.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue()));
-		tableColumnRemove.setCellFactory(param -> new TableCell<Department, Department>() {
+		tableColumnRemove.setCellFactory(param -> new TableCell<Seller, Seller>() {
 			private final Button button = new Button("remove");
 
 			@Override
-			protected void updateItem(Department obj, boolean empty) {
+			protected void updateItem(Seller obj, boolean empty) {
 				super.updateItem(obj, empty);
 				if (obj == null) {
 					setGraphic(null);
@@ -157,18 +173,17 @@ public class DepartmentListController implements Initializable, DataChangeListen
 		});
 	}
 
-	private void removeEntity(Department obj) {
-		Optional<ButtonType> result =  Alerts.showConfirmation("Confirmation", "Are you sure to delete?");
-		
+	private void removeEntity(Seller obj) {
+		Optional<ButtonType> result = Alerts.showConfirmation("Confirmation", "Are you sure to delete?");
+
 		if (result.get() == ButtonType.OK) {
-			if (departmentService == null) {
+			if (sellerService == null) {
 				throw new IllegalStateException("Service was null");
 			}
 			try {
-				departmentService.remove(obj);
+				sellerService.remove(obj);
 				updateTableView();
-			}
-			catch (DbIntegrityException e) {
+			} catch (DbIntegrityException e) {
 				Alerts.showAlert("Database Error", null, e.getMessage(), AlertType.ERROR);
 			}
 		}
